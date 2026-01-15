@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import { motion } from "framer-motion";
 
 type Player = {
   id: string;
@@ -98,31 +99,36 @@ const RoomLobby: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="card">
+      <motion.div className="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <h1>Lobby 👥</h1>
         <p className="mt-2" style={{ color: "#9ca3af" }}>
           Chargement…
         </p>
-      </div>
+      </motion.div>
     );
   }
 
   if (err && !room) {
     return (
-      <div className="card">
+      <motion.div className="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <h1>Lobby 👥</h1>
         <p className="mt-2 form-error">{err}</p>
         <button onClick={() => navigate("/multiplayer")} className="btn-block">
           Retour
         </button>
-      </div>
+      </motion.div>
     );
   }
 
   if (!room) return null;
 
   return (
-    <div className="card">
+    <motion.div
+      className="card"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="flex-between" style={{ gap: "0.75rem", flexWrap: "wrap" }}>
         <div>
           <h1>Lobby 👥</h1>
@@ -189,13 +195,18 @@ const RoomLobby: React.FC = () => {
         <div className="mt-2 lobby-players">
           {room.players?.map((p) => (
             <div key={p.id} className="lobby-player">
-              {p.user?.username ?? p.userId}
-              {p.user?.id === room.host?.id && (
-                <span className="lobby-host-badge">Host</span>
-              )}
-              {p.user?.id === user?.id && (
-                <span className="lobby-me-badge">Moi</span>
-              )}
+              <span className="lobby-player-name">
+                {p.user?.username ?? p.userId}
+              </span>
+
+              <div className="lobby-tags">
+                {p.user?.id === room.host?.id && (
+                  <span className="lobby-host-badge">Host</span>
+                )}
+                {p.user?.id === user?.id && (
+                  <span className="lobby-me-badge">Moi</span>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -218,7 +229,7 @@ const RoomLobby: React.FC = () => {
           </div>
         )}
       </section>
-    </div>
+    </motion.div>
   );
 };
 

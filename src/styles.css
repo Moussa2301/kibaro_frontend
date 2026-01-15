@@ -1229,3 +1229,204 @@ main {
     grid-template-columns: 1fr;
   }
 }
+
+/* Buttons full width helper */
+.btn-block {
+  width: 100%;
+  padding: 0.85rem 1rem;
+}
+
+/* Range style */
+.range {
+  width: 100%;
+  margin-top: 0.6rem;
+}
+
+/* Duel layout */
+.duel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Chapter multi-select list */
+.duel-chapter-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.duel-chapter-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.03);
+  cursor: pointer;
+}
+
+.duel-chapter-item.is-checked {
+  border-color: rgba(34,197,94,.55);
+  background: rgba(34,197,94,.10);
+}
+
+/* Multiplayer helpers */
+.mp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.mp-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.mp-range-labels {
+  display: flex;
+  justify-content: space-between;
+  opacity: 0.75;
+  font-size: 0.8rem;
+  margin-top: 0.35rem;
+}
+
+.mp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.mp-chip {
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.45);
+  background: rgba(15,23,42,0.65);
+  font-size: 0.8rem;
+  color: #e5e7eb;
+}
+
+.mp-share {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.mp-share input {
+  flex: 1;
+}
+
+/* QR layout: 2 colonnes PC, 1 colonne mobile */
+.mp-qr-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.mp-qr-box {
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255,255,255,.03);
+  width: fit-content;
+}
+
+/* Lobby */
+.lobby-info {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.lobby-info-item {
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.03);
+  border-radius: 14px;
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.lobby-info-item span {
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.lobby-share {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.lobby-share input {
+  flex: 1;
+}
+
+.lobby-players {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.lobby-player {
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.03);
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.lobby-player-name {
+  font-weight: 700;
+}
+
+.lobby-tags {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.lobby-host-badge,
+.lobby-me-badge {
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  border: 1px solid rgba(148,163,184,.4);
+  background: rgba(15,23,42,.6);
+  color: #e5e7eb;
+}
+
+.lobby-host-badge {
+  border-color: rgba(56,189,248,.55);
+}
+
+.lobby-me-badge {
+  border-color: rgba(34,197,94,.55);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .duel-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mp-share,
+  .lobby-share {
+    flex-direction: column;
+  }
+
+  .mp-qr-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .lobby-info {
+    grid-template-columns: 1fr;
+  }
+}

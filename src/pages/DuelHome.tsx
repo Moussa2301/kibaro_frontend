@@ -1,21 +1,19 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import { motion } from "framer-motion";
 
 type Chapter = { id: string; title: string };
 
-const clamp = (n: number, min: number, max: number) => Math.min(Math.max(n, min), max);
+const clamp = (n: number, min: number, max: number) =>
+  Math.min(Math.max(n, min), max);
 
 const DuelHome: React.FC = () => {
   const navigate = useNavigate();
 
   const [chapters, setChapters] = useState<Chapter[]>([]);
-
-  // ✅ multi-chapitres
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  // ✅ slider 5 → 30
   const [questionCount, setQuestionCount] = useState<number>(10);
-
   const [joinId, setJoinId] = useState("");
 
   const [loadingChapters, setLoadingChapters] = useState(true);
@@ -31,18 +29,19 @@ const DuelHome: React.FC = () => {
         setLoadingChapters(true);
 
         const res = await api.get("/chapters");
-
         const list: Chapter[] = Array.isArray(res.data)
           ? res.data
           : res.data?.chapters ?? [];
 
         setChapters(list);
-
-        // ✅ sélection par défaut = 1er chapitre
         if (list?.[0]?.id) setSelectedIds([list[0].id]);
         else setSelectedIds([]);
       } catch (e: any) {
-        console.error("Erreur chargement chapitres:", e?.response?.status, e?.response?.data);
+        console.error(
+          "Erreur chargement chapitres:",
+          e?.response?.status,
+          e?.response?.data
+        );
         setErr("Impossible de charger les chapitres");
       } finally {
         setLoadingChapters(false);
@@ -51,19 +50,18 @@ const DuelHome: React.FC = () => {
   }, []);
 
   const toggleChapter = (id: string) => {
-    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
   };
 
   const createDuel = async () => {
     setErr("");
-
     if (!selectedIds.length) return setErr("Choisis au moins un chapitre");
 
     try {
       setLoadingAction(true);
 
-      // ✅ transition douce: on envoie chapterIds + questionCount
-      // (et on garde chapterId = premier pour rétro-compat si ton backend l'utilise encore)
       const payload = {
         chapterIds: selectedIds,
         chapterId: selectedIds[0],
@@ -99,38 +97,49 @@ const DuelHome: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: 720, margin: "40px auto", padding: 16 }}>
-      <h2>Mode Duel ⚔️</h2>
+    <motion.div
+      className="card"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="flex-between" style={{ gap: "0.75rem", flexWrap: "wrap" }}>
+        <div>
+          <h1>Mode Duel ⚔️</h1>
+          <p className="mt-2" style={{ color: "#9ca3af", fontSize: "0.9rem" }}>
+            Crée un duel (multi-chapitres) ou rejoins un duel existant.
+          </p>
+        </div>
+        <span className="badge">Duel</span>
+      </div>
 
-      {err && <p style={{ color: "#ff6b6b" }}>{err}</p>}
+      {err && <p className="mt-2 form-error">{err}</p>}
 
-      <div style={{ display: "grid", gap: 16, marginTop: 16 }}>
-        <div style={{ border: "1px solid rgba(255,255,255,.15)", padding: 16, borderRadius: 12 }}>
-          <h3>Créer un duel</h3>
+      <div className="mt-4 duel-grid">
+        {/* Créer */}
+        <section className="card">
+          <h2>Créer un duel</h2>
 
-          <label>Chapitres (multi-sélection)</label>
+          <label className="mt-2">Chapitres (multi-sélection)</label>
 
           {loadingChapters ? (
-            <p style={{ opacity: 0.8, marginTop: 8 }}>Chargement des chapitres...</p>
+            <p className="mt-2" style={{ opacity: 0.85 }}>
+              Chargement des chapitres...
+            </p>
           ) : !hasChapters ? (
-            <p style={{ opacity: 0.8, marginTop: 8 }}>Aucun chapitre disponible.</p>
+            <p className="mt-2" style={{ opacity: 0.85 }}>
+              Aucun chapitre disponible.
+            </p>
           ) : (
-            <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
+            <div className="mt-2 duel-chapter-list">
               {chapters.map((c) => {
                 const checked = selectedIds.includes(c.id);
                 return (
                   <label
                     key={c.id}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      padding: 10,
-                      borderRadius: 10,
-                      border: "1px solid rgba(255,255,255,.12)",
-                      background: checked ? "rgba(255,255,255,.06)" : "transparent",
-                      cursor: "pointer",
-                    }}
+                    className={`duel-chapter-item ${
+                      checked ? "is-checked" : ""
+                    }`}
                   >
                     <input
                       type="checkbox"
@@ -144,7 +153,7 @@ const DuelHome: React.FC = () => {
             </div>
           )}
 
-          <div style={{ marginTop: 14 }}>
+          <div className="mt-4">
             <label>
               Nombre de questions : <b>{questionCount}</b>
             </label>
@@ -154,43 +163,43 @@ const DuelHome: React.FC = () => {
               max={30}
               value={questionCount}
               onChange={(e) => setQuestionCount(Number(e.target.value))}
-              style={{ width: "100%", marginTop: 8 }}
+              className="range"
             />
-            <div style={{ opacity: 0.75, marginTop: 6 }}>
+            <p className="mt-2" style={{ color: "#9ca3af", fontSize: "0.85rem" }}>
               (5 → 30, questions tirées aléatoirement parmi les chapitres choisis)
-            </div>
+            </p>
           </div>
 
           <button
             onClick={createDuel}
             disabled={loadingAction || loadingChapters || !hasChapters}
-            style={{ marginTop: 12, padding: 12, width: "100%" }}
+            className="btn-block"
           >
             {loadingAction ? "Création..." : "Créer"}
           </button>
-        </div>
+        </section>
 
-        <div style={{ border: "1px solid rgba(255,255,255,.15)", padding: 16, borderRadius: 12 }}>
-          <h3>Rejoindre un duel</h3>
+        {/* Rejoindre */}
+        <section className="card">
+          <h2>Rejoindre un duel</h2>
 
-          <label>ID du duel</label>
+          <label className="mt-2">ID du duel</label>
           <input
             value={joinId}
             onChange={(e) => setJoinId(e.target.value)}
             placeholder="ex: 2d8f...-...."
-            style={{ width: "100%", padding: 10, marginTop: 8 }}
           />
 
           <button
             onClick={joinDuel}
             disabled={loadingAction}
-            style={{ marginTop: 12, padding: 12, width: "100%" }}
+            className="btn-block"
           >
             {loadingAction ? "Connexion..." : "Rejoindre"}
           </button>
-        </div>
+        </section>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

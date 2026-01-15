@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { QRCodeCanvas } from "qrcode.react";
 import { useAuth } from "../context/AuthContext";
+import { motion } from "framer-motion";
 
 type Chapter = { id: string; title: string };
 
@@ -10,17 +11,11 @@ type Room = {
   id: string;
   joinCode: string;
   status: "WAITING" | "RUNNING" | "FINISHED" | string;
-
   host?: { id: string; username: string } | null;
-  players?: { user: { id: string; username: string } }[];
-
   Chapter?: { id: string; title: string } | null;
-  chapterId?: string | null;
-
   questionsAvailable?: number;
   questionsPicked?: number;
   requestedQuestions?: number;
-  chaptersSelected?: number;
 };
 
 const clamp = (n: number, min: number, max: number) =>
@@ -33,7 +28,6 @@ const Multiplayer: React.FC = () => {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [selectedChapterIds, setSelectedChapterIds] = useState<string[]>([]);
   const [questionCount, setQuestionCount] = useState<number>(10);
-
   const [room, setRoom] = useState<Room | null>(null);
 
   const [loadingChapters, setLoadingChapters] = useState(true);
@@ -73,7 +67,7 @@ const Multiplayer: React.FC = () => {
 
         setChapters(list);
         if (list?.[0]?.id) setSelectedChapterIds([list[0].id]);
-      } catch (e: any) {
+      } catch {
         setErr("Impossible de charger les chapitres");
       } finally {
         setLoadingChapters(false);
@@ -106,7 +100,7 @@ const Multiplayer: React.FC = () => {
 
       const payload = {
         chapterIds: selectedChapterIds,
-        chapterId: selectedChapterIds[0], // rétrocompat
+        chapterId: selectedChapterIds[0],
         questionCount: requested,
       };
 
@@ -146,13 +140,17 @@ const Multiplayer: React.FC = () => {
   };
 
   return (
-    <div className="card">
+    <motion.div
+      className="card"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="flex-between" style={{ gap: "0.75rem", flexWrap: "wrap" }}>
         <div>
           <h1>Multijoueur 👥</h1>
-          <p className="mt-2" style={{ opacity: 0.85, color: "#9ca3af" }}>
-            Choisis un ou plusieurs chapitres, puis partage le lien (ou QR Code).
-            Le jeu sélectionne des questions aléatoires (jusqu’à 30).
+          <p className="mt-2" style={{ color: "#9ca3af", fontSize: "0.9rem" }}>
+            Crée une room, partage le lien ou QR code, puis démarre la partie.
           </p>
         </div>
         <span className="badge">Room</span>
@@ -164,7 +162,6 @@ const Multiplayer: React.FC = () => {
       <section className="card mt-4">
         <h2>Créer une room</h2>
 
-        {/* Slider */}
         <div className="mt-2">
           <label>
             Nombre de questions : <strong>{questionCount}</strong>
@@ -183,7 +180,6 @@ const Multiplayer: React.FC = () => {
           </div>
         </div>
 
-        {/* Chapitres */}
         <div className="mt-4">
           <div className="mp-row">
             <label>Chapitres (multi-sélection)</label>
@@ -221,7 +217,9 @@ const Multiplayer: React.FC = () => {
                 return (
                   <label
                     key={c.id}
-                    className={`duel-chapter-item ${checked ? "is-checked" : ""}`}
+                    className={`duel-chapter-item ${
+                      checked ? "is-checked" : ""
+                    }`}
                   >
                     <input
                       type="checkbox"
@@ -245,14 +243,12 @@ const Multiplayer: React.FC = () => {
         </button>
       </section>
 
-      {/* Résultat création */}
+      {/* Room créée */}
       {room && (
         <section className="card mt-4">
           <div className="flex-between" style={{ gap: "0.75rem", flexWrap: "wrap" }}>
             <h2>Room créée ✅</h2>
-            <span className="badge">
-              {room.status === "WAITING" ? "En attente" : room.status}
-            </span>
+            <span className="badge">{room.status}</span>
           </div>
 
           <div className="mt-2" style={{ display: "grid", gap: "0.5rem" }}>
@@ -285,7 +281,6 @@ const Multiplayer: React.FC = () => {
             </div>
           </div>
 
-          {/* Lien */}
           <div className="mt-4">
             <label>Lien à partager</label>
             <div className="mp-share">
@@ -300,7 +295,6 @@ const Multiplayer: React.FC = () => {
             </div>
           </div>
 
-          {/* QR + actions */}
           <div className="mt-4 mp-qr-layout">
             <div className="mp-qr-box">
               <QRCodeCanvas value={shareUrl} size={180} />
@@ -328,7 +322,7 @@ const Multiplayer: React.FC = () => {
           </div>
         </section>
       )}
-    </div>
+    </motion.div>
   );
 };
 
