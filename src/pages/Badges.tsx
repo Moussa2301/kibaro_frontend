@@ -18,6 +18,7 @@ const Badges: React.FC = () => {
 
   const load = async () => {
     try {
+      setError(null);
       const res = await api.get("/badges/me");
       setBadges(res.data);
     } catch (err: any) {
@@ -34,6 +35,7 @@ const Badges: React.FC = () => {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
+      setError(null);
       await api.post("/badges/refresh");
       await load();
     } catch (err: any) {
@@ -53,47 +55,58 @@ const Badges: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="flex-between">
-        <h1>Mes badges</h1>
-        <button onClick={handleRefresh} disabled={refreshing}>
+      {/* Header responsive */}
+      <div className="page-head">
+        <div>
+          <h1>Mes badges</h1>
+          <p className="page-subtitle">
+            Débloque des récompenses en jouant aux quiz (chapitres, duel, multijoueur).
+          </p>
+        </div>
+
+        <button
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="btn-mobile-block"
+          type="button"
+        >
           {refreshing ? "Mise à jour..." : "Rafraîchir"}
         </button>
       </div>
+
       <div className="mt-4">
-        {badges.length === 0 && (
-          <p style={{ color: "#9ca3af" }}>
-            Aucun badge pour le moment. Joue des quiz pour en débloquer !
-          </p>
-        )}
-        <div className="mt-2" style={{ display: "grid", gap: "0.75rem" }}>
-          {badges.map((b) => (
-            <div
-              key={b.id}
-              style={{
-                padding: "0.75rem",
-                borderRadius: "0.75rem",
-                border: "1px solid #1f2937",
-                background: "#020617",
-              }}
-            >
-              <div className="flex-between">
-                <div>
-                  <h3>{b.title}</h3>
-                  <p style={{ fontSize: "0.85rem", color: "#9ca3af" }}>
-                    {b.description}
-                  </p>
+        {badges.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-emoji">🏅</div>
+            <p style={{ color: "#9ca3af" }}>
+              Aucun badge pour le moment. Joue des quiz pour en débloquer !
+            </p>
+          </div>
+        ) : (
+          <div className="badges-grid">
+            {badges.map((b) => (
+              <div key={b.id} className="badge-card">
+                <div className="badge-card-head">
+                  <div className="badge-icon" aria-hidden="true">
+                    {b.icon}
+                  </div>
+
+                  <div className="badge-text">
+                    <h3 className="badge-title">{b.title}</h3>
+                    <p className="badge-desc">{b.description}</p>
+                  </div>
                 </div>
-                <span style={{ fontSize: "1.5rem" }}>{b.icon}</span>
+
+                <div className="badge-meta">
+                  Obtenu le{" "}
+                  <strong>
+                    {new Date(b.date).toLocaleDateString()}
+                  </strong>
+                </div>
               </div>
-              <p
-                className="mt-2"
-                style={{ fontSize: "0.8rem", color: "#6b7280" }}
-              >
-                Obtenu le {new Date(b.date).toLocaleDateString()}
-              </p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </motion.div>
   );

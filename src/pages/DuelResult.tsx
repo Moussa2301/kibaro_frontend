@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
+import { motion } from "framer-motion";
 
 type Game = {
   id: string;
@@ -11,7 +12,7 @@ type Game = {
 
   player1Score?: number | null;
   player2Score?: number | null;
-  player1Time?: number | null; // secondes
+  player1Time?: number | null;
   player2Time?: number | null;
 
   chapter?: { id: string; title: string } | null;
@@ -27,8 +28,6 @@ const DuelResult: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  // (Optionnel) lire le token pour récupérer le userId si tu l’as mis dedans
-  // Sinon on affiche juste le gagnant global.
   const myUserId = useMemo(() => {
     try {
       const token = localStorage.getItem("token");
@@ -58,7 +57,6 @@ const DuelResult: React.FC = () => {
 
     fetchGame();
 
-    // petit refresh toutes les 2s tant que pas FINISHED (le temps que l’autre joueur submit)
     const interval = setInterval(async () => {
       try {
         const res = await api.get(`/games/${id}`);
@@ -79,14 +77,11 @@ const DuelResult: React.FC = () => {
     const p1t = g.player1Time ?? null;
     const p2t = g.player2Time ?? null;
 
-    // Si un joueur n’a pas soumis, pas de gagnant définitif
     if (p1s === null || p2s === null) return { winner: "PENDING" as const };
 
-    // score plus élevé gagne
     if (p1s > p2s) return { winner: "P1" as const };
     if (p2s > p1s) return { winner: "P2" as const };
 
-    // égalité => temps le plus bas gagne (si dispo)
     if (p1t !== null && p2t !== null) {
       if (p1t < p2t) return { winner: "P1" as const };
       if (p2t < p1t) return { winner: "P2" as const };
@@ -126,22 +121,24 @@ const DuelResult: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: 760, margin: "40px auto", padding: 16 }}>
-        <h2>Résultat du duel</h2>
-        <p>Chargement…</p>
-      </div>
+      <motion.div className="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <h1>Résultat du duel</h1>
+        <p className="mt-2" style={{ color: "#9ca3af" }}>
+          Chargement…
+        </p>
+      </motion.div>
     );
   }
 
   if (err || !game) {
     return (
-      <div style={{ maxWidth: 760, margin: "40px auto", padding: 16 }}>
-        <h2>Résultat du duel</h2>
-        <p style={{ color: "#ff6b6b" }}>{err || "Duel introuvable"}</p>
-        <button onClick={() => navigate("/duel")} style={{ padding: 12 }}>
+      <motion.div className="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <h1>Résultat du duel</h1>
+        <p className="mt-2 form-error">{err || "Duel introuvable"}</p>
+        <button onClick={() => navigate("/duel")} className="btn-block">
           Retour au Duel
         </button>
-      </div>
+      </motion.div>
     );
   }
 
@@ -149,54 +146,73 @@ const DuelResult: React.FC = () => {
   const p2 = game.player2?.username || "Joueur 2";
 
   return (
-    <div style={{ maxWidth: 760, margin: "40px auto", padding: 16 }}>
-      <h2>Résultat du duel 🏁</h2>
-      <p style={{ opacity: 0.9, marginTop: 6 }}>
-        Chapitre : <b>{game.chapter?.title ?? "—"}</b> &nbsp; | &nbsp; Statut :{" "}
-        <b>{game.status}</b>
-      </p>
+    <motion.div
+      className="card"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="flex-between" style={{ gap: "0.75rem", flexWrap: "wrap" }}>
+        <div>
+          <h1>Résultat du duel 🏁</h1>
+          <p className="mt-2" style={{ color: "#9ca3af", fontSize: "0.9rem" }}>
+            Chapitre : <strong>{game.chapter?.title ?? "—"}</strong> • Statut :{" "}
+            <strong>{game.status}</strong>
+          </p>
+        </div>
+        <span className="badge">{game.status}</span>
+      </div>
 
-      <div
-        style={{
-          marginTop: 16,
-          border: "1px solid rgba(255,255,255,.15)",
-          borderRadius: 14,
-          padding: 16,
-        }}
-      >
-        <h3 style={{ marginTop: 0 }}>{winnerLabel}</h3>
-        {myResultLabel && <p style={{ marginTop: 6 }}>{myResultLabel}</p>}
+      <section className="card mt-4">
+        <h2 style={{ marginTop: 0 }}>{winnerLabel}</h2>
+        {myResultLabel && (
+          <p className="mt-2" style={{ fontWeight: 700 }}>
+            {myResultLabel}
+          </p>
+        )}
 
-        <div style={{ display: "grid", gap: 12, marginTop: 14 }}>
-          <div style={{ padding: 12, borderRadius: 12, border: "1px solid rgba(255,255,255,.12)" }}>
-            <b>{p1}</b>
-            <div style={{ marginTop: 6 }}>
-              Score : <b>{game.player1Score ?? "—"}</b>
-              {"  "} | Temps : <b>{game.player1Time ?? "—"}</b>
-              {game.player1Time !== null && game.player1Time !== undefined ? "s" : ""}
+        <div className="mt-4 duel-result-grid">
+          <div className="duel-result-card">
+            <div className="flex-between" style={{ gap: "0.75rem", flexWrap: "wrap" }}>
+              <strong>{p1}</strong>
+              <span className="badge">P1</span>
+            </div>
+            <div className="mt-2" style={{ color: "#9ca3af" }}>
+              Score : <strong style={{ color: "#e5e7eb" }}>{game.player1Score ?? "—"}</strong>
+              {"  "} • Temps :{" "}
+              <strong style={{ color: "#e5e7eb" }}>
+                {game.player1Time ?? "—"}
+                {game.player1Time !== null && game.player1Time !== undefined ? "s" : ""}
+              </strong>
             </div>
           </div>
 
-          <div style={{ padding: 12, borderRadius: 12, border: "1px solid rgba(255,255,255,.12)" }}>
-            <b>{p2}</b>
-            <div style={{ marginTop: 6 }}>
-              Score : <b>{game.player2Score ?? "—"}</b>
-              {"  "} | Temps : <b>{game.player2Time ?? "—"}</b>
-              {game.player2Time !== null && game.player2Time !== undefined ? "s" : ""}
+          <div className="duel-result-card">
+            <div className="flex-between" style={{ gap: "0.75rem", flexWrap: "wrap" }}>
+              <strong>{p2}</strong>
+              <span className="badge">P2</span>
+            </div>
+            <div className="mt-2" style={{ color: "#9ca3af" }}>
+              Score : <strong style={{ color: "#e5e7eb" }}>{game.player2Score ?? "—"}</strong>
+              {"  "} • Temps :{" "}
+              <strong style={{ color: "#e5e7eb" }}>
+                {game.player2Time ?? "—"}
+                {game.player2Time !== null && game.player2Time !== undefined ? "s" : ""}
+              </strong>
             </div>
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
-          <button onClick={() => navigate("/duel")} style={{ padding: 12, flex: 1 }}>
+        <div className="mt-4 duel-result-actions">
+          <button onClick={() => navigate("/duel")} className="btn-block">
             Nouveau duel
           </button>
-          <button onClick={() => navigate("/chapters")} style={{ padding: 12, flex: 1 }}>
+          <button onClick={() => navigate("/chapters")} className="btn-block">
             Retour chapitres
           </button>
         </div>
-      </div>
-    </div>
+      </section>
+    </motion.div>
   );
 };
 

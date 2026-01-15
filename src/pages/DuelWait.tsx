@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
+import { motion } from "framer-motion";
 
 type Game = {
   id: string;
@@ -10,7 +11,6 @@ type Game = {
   player2Id?: string | null;
   createdAt?: string;
 
-  // ✅ si ton backend renvoie ces infos (createGame / getGameById)
   questionCount?: number | null;
   questionsPicked?: number | null;
   questionsAvailable?: number | null;
@@ -52,13 +52,9 @@ const DuelWait: React.FC = () => {
         if (!alive) return;
         setGame(g);
 
-        // ✅ dès que RUNNING => on lance le jeu
         if (g.status === "RUNNING") {
           navigate(`/duel/play/${id}`);
         }
-
-        // (Optionnel) si FINISHED on peut aller direct résultat
-        // if (g.status === "FINISHED") navigate(`/duel/result/${id}`);
       } catch (e: any) {
         if (!alive) return;
         setErr(e?.response?.data?.msg || "Impossible de récupérer la partie");
@@ -97,8 +93,13 @@ const DuelWait: React.FC = () => {
         ? game.questionsAvailable
         : null;
 
-    // Affiche uniquement si au moins une info existe
-    if (chapters === null && picked === null && requested === null && available === null) return null;
+    if (
+      chapters === null &&
+      picked === null &&
+      requested === null &&
+      available === null
+    )
+      return null;
 
     const parts: string[] = [];
     if (chapters !== null) parts.push(`${chapters} chapitre(s)`);
@@ -110,67 +111,62 @@ const DuelWait: React.FC = () => {
   }, [game]);
 
   return (
-    <div style={{ maxWidth: 760, margin: "40px auto", padding: 16 }}>
-      <h2>En attente du 2ᵉ joueur… ⏳</h2>
+    <motion.div
+      className="card"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="flex-between" style={{ gap: "0.75rem", flexWrap: "wrap" }}>
+        <div>
+          <h1>En attente du 2ᵉ joueur… ⏳</h1>
+          <p className="mt-2" style={{ color: "#9ca3af", fontSize: "0.9rem" }}>
+            Partage l’ID ci-dessous à ton ami pour qu’il rejoigne le duel.
+          </p>
+        </div>
+        <span className="badge">{game?.status ?? "..."}</span>
+      </div>
 
-      {err && <p style={{ color: "#ff6b6b" }}>{err}</p>}
+      {err && <p className="mt-2 form-error">{err}</p>}
 
-      <div
-        style={{
-          marginTop: 16,
-          border: "1px solid rgba(255,255,255,.15)",
-          borderRadius: 14,
-          padding: 16,
-        }}
-      >
-        <p style={{ opacity: 0.9 }}>Partage cet ID à ton ami pour qu’il rejoigne le duel :</p>
+      <section className="card mt-4">
+        <label>ID du duel</label>
 
-        <div
-          style={{
-            display: "flex",
-            gap: 10,
-            alignItems: "center",
-            marginTop: 10,
-            flexWrap: "wrap",
-          }}
-        >
-          <code
-            style={{
-              padding: "10px 12px",
-              borderRadius: 10,
-              background: "rgba(255,255,255,.06)",
-              border: "1px solid rgba(255,255,255,.12)",
-              userSelect: "all",
-            }}
-          >
-            {shareId}
-          </code>
-
-          <button onClick={copyId} style={{ padding: "10px 14px" }}>
+        <div className="duel-share mt-2">
+          <code className="duel-code">{shareId}</code>
+          <button type="button" onClick={copyId} className="duel-copy-btn">
             {copied ? "Copié ✅" : "Copier"}
           </button>
         </div>
 
-        <div style={{ marginTop: 14, opacity: 0.85 }}>
-          <div>
-            <b>Statut :</b> {game?.status ?? "Chargement..."}
-          </div>
-          <div>
-            <b>Joueur 2 :</b> {game?.player2Id ? "Connecté ✅" : "En attente…"}
+        <div className="mt-4 duel-wait-info">
+          <div className="duel-wait-item">
+            <span>Statut</span>
+            <strong>{game?.status ?? "Chargement..."}</strong>
           </div>
 
-          {/* ✅ Multi-chapitres / questions */}
-          {infoLine && <div style={{ marginTop: 8, opacity: 0.85 }}>{infoLine}</div>}
+          <div className="duel-wait-item">
+            <span>Joueur 2</span>
+            <strong>{game?.player2Id ? "Connecté ✅" : "En attente…"}</strong>
+          </div>
+
+          {infoLine && (
+            <div className="duel-wait-item" style={{ gridColumn: "1 / -1" }}>
+              <span>Infos</span>
+              <strong>{infoLine}</strong>
+            </div>
+          )}
         </div>
 
         <button
           onClick={() => navigate("/duel")}
-          style={{ marginTop: 16, padding: 12, width: "100%" }}
+          className="btn-block"
+          style={{ marginTop: "1rem" }}
         >
           Retour
         </button>
-      </div>
-    </div>
+      </section>
+    </motion.div>
   );
 };
 
