@@ -255,3 +255,533 @@ h1, h2, h3, h4 {
   gap: 0.5rem;
   flex-wrap: wrap;
 }
+
+/* mobile helpers */
+.hide-mobile { display: flex; }
+.show-mobile { display: none; }
+
+@media (max-width: 768px) {
+  .hide-mobile { display: none !important; }
+  .show-mobile { display: block !important; }
+}
+
+/* ===========================
+   MOBILE RESPONSIVE PATCH
+   (à coller tout en bas)
+=========================== */
+
+/* 1) Sécurité overflow global */
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 2) Main: largeur fluide */
+main {
+  max-width: 1100px; /* tu gardes */
+  width: 100%;
+}
+
+/* 3) Tables: scroll horizontal sur mobile */
+.table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 4) Petites améliorations globales mobile */
+@media (max-width: 768px) {
+  /* paddings adaptés */
+  main {
+    padding: 1rem;
+  }
+
+  .card {
+    padding: 1rem;
+    border-radius: 0.9rem;
+  }
+
+  /* boutons plus faciles à cliquer */
+  button {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.9rem; /* moins “pill” sur mobile = plus stable */
+  }
+
+  /* inputs un peu plus grands */
+  input, select, textarea {
+    padding: 0.65rem 0.8rem;
+    border-radius: 0.75rem;
+  }
+
+  /* ton helper flex-between devient vertical quand nécessaire */
+  .flex-between {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  /* navbar: moins de padding */
+  .navbar {
+    padding: 0.75rem 1rem;
+  }
+
+  /* évite que le titre prenne trop de place */
+  .navbar strong {
+    font-size: 0.95rem;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* chips/badges mieux dimensionnés */
+  .badge {
+    font-size: 0.78rem;
+    padding: 0.25rem 0.75rem;
+  }
+
+  .chip {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.75rem;
+  }
+
+  /* liens des nav (dans ton menu mobile) */
+  .nav-links a {
+    display: block;
+    padding: 0.6rem 0.75rem;
+  }
+
+  /* grilles: 1 colonne sur mobile */
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 5) Très petits écrans (ex: 360px) */
+@media (max-width: 420px) {
+  main {
+    padding: 0.85rem;
+  }
+
+  .card {
+    padding: 0.9rem;
+  }
+
+  .navbar strong {
+    max-width: 140px;
+  }
+}
+
+/* Dashboard tiles: moins lourd que .card (évite card dans card) */
+.dash-tile {
+  background: rgba(2, 6, 23, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 1rem;
+  padding: 1.1rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.35);
+}
+
+.dash-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Mobile: actions en colonne + boutons pleine largeur */
+@media (max-width: 768px) {
+  .dash-actions {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .dash-actions a {
+    width: 100%;
+  }
+  .dash-actions button {
+    width: 100%;
+  }
+}
+
+/* ChapterQuiz responsive */
+.quiz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.quiz-title {
+  min-width: 0;
+}
+
+.quiz-h1 {
+  font-size: 1.35rem;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.quiz-sub {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.quiz-chip {
+  flex-shrink: 0;
+}
+
+.quiz-progress {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: #111827;
+  overflow: hidden;
+}
+
+.quiz-progress-bar {
+  height: 100%;
+  background: #10b981;
+  transition: width 0.3s ease;
+}
+
+.quiz-q {
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+.quiz-help {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.quiz-answers {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.quiz-answer-btn {
+  text-align: left;
+  width: 100%;
+  padding: 0.85rem 0.95rem;
+  border-radius: 0.85rem;
+  border: 1px solid #374151;
+  background: #020617;
+  color: #e5e7eb;
+  cursor: pointer;
+  transition: transform 0.08s ease, opacity 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.quiz-answer-btn:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.w-100 {
+  width: 100%;
+}
+
+.full-link {
+  display: block;
+}
+
+.quiz-footer {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.quiz-footer-inline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.quiz-note {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* Mobile: padding global et footer en colonne */
+@media (max-width: 768px) {
+  main {
+    padding: 1rem;
+  }
+
+  .card {
+    padding: 1.1rem;
+  }
+
+  .quiz-h1 {
+    font-size: 1.2rem;
+  }
+
+  .quiz-footer {
+    flex-direction: column;
+  }
+
+  .quiz-footer-inline {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .quiz-note {
+    text-align: center;
+  }
+}
+
+
+/* Chapters responsive */
+.chapters-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.chapters-title {
+  min-width: 0;
+}
+
+.chapters-subtitle {
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.chapters-chip {
+  flex-shrink: 0;
+}
+
+/* Category buttons */
+.chapters-cats {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.cat-btn {
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid #374151;
+  font-size: 0.85rem;
+  background: #111827;
+  color: #e5e7eb;
+  cursor: pointer;
+  margin-top: 0;
+  box-shadow: none;
+  transition: transform 0.08s ease, opacity 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cat-btn:active {
+  transform: scale(0.99);
+}
+
+.cat-btn-active {
+  background: rgba(16, 185, 129, 0.95);
+  border-color: rgba(16, 185, 129, 0.95);
+  color: #fff;
+}
+
+/* Filters grid */
+.chapters-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+/* Chapters grid */
+.chapters-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.chapter-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.chapter-card-title {
+  min-width: 0;
+}
+
+.chapter-h3 {
+  font-size: 1.05rem;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.chapter-period {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.chapter-excerpt {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  line-height: 1.4;
+}
+
+.chapter-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.chapter-footnote {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .chapters-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .chapters-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chapter-card-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .chapter-footnote {
+    text-align: center;
+  }
+}
+
+/* Navbar improvements */
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.navbar-logo {
+  height: 40px;
+  width: auto;
+}
+
+.navbar-title {
+  letter-spacing: 0.04em;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Icon button (mobile) */
+.icon-btn {
+  margin-top: 0;
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  background: rgba(30, 64, 175, 0.35);
+  color: #e5e7eb;
+  border: 1px solid rgba(148,163,184,0.25);
+  box-shadow: none;
+}
+.icon-btn:hover:not(:disabled) {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Mobile overlay menu */
+.mobile-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: grid;
+  place-items: start center;
+}
+
+.mobile-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* Panel */
+.mobile-panel {
+  position: relative;
+  width: min(92vw, 420px);
+  margin-top: 0.75rem;
+  background: rgba(15,23,42,0.97);
+  border: 1px solid rgba(148,163,184,0.25);
+  border-radius: 1rem;
+  box-shadow: 0 18px 45px rgba(15,23,42,0.85);
+  backdrop-filter: blur(14px);
+  padding: 0.75rem;
+  z-index: 1000;
+}
+
+.mobile-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.25rem 0.25rem 0.75rem 0.25rem;
+  border-bottom: 1px solid rgba(148,163,184,0.15);
+}
+
+.mobile-user-title {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.mobile-user-sub {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin-top: 0.1rem;
+}
+
+.mobile-links {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.75rem 0.25rem;
+}
+
+.mobile-links a {
+  padding: 0.8rem 0.8rem;
+  border-radius: 0.8rem;
+  border: 1px solid rgba(148,163,184,0.15);
+  background: rgba(2,6,23,0.7);
+  font-size: 0.95rem;
+}
+
+.mobile-links a.active-link {
+  border-color: rgba(16,185,129,0.65);
+  background: rgba(16,185,129,0.12);
+}
+
+.mobile-bottom {
+  padding: 0.25rem;
+  border-top: 1px solid rgba(148,163,184,0.15);
+}
+
+/* Helpers */
+.w-100 { width: 100%; }

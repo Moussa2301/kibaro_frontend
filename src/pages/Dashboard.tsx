@@ -19,9 +19,10 @@ const Dashboard: React.FC = () => {
         et découvre de nouveaux chapitres sur la Guinée et l'Afrique.
       </p>
 
+      {/* Grid de sections (cards plus légères) */}
       <div className="mt-4 grid grid-2">
-        <motion.div
-          className="card"
+        <motion.section
+          className="dash-tile"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05, duration: 0.3 }}
@@ -31,12 +32,14 @@ const Dashboard: React.FC = () => {
             Parcours les chapitres de l'histoire de la Guinée et teste tes connaissances
             avec des quiz progressifs.
           </p>
+
           <Link to="/chapters">
             <button className="mt-4">Voir les chapitres</button>
           </Link>
-        </motion.div>
-        <motion.div
-          className="card"
+        </motion.section>
+
+        <motion.section
+          className="dash-tile"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.3 }}
@@ -46,7 +49,8 @@ const Dashboard: React.FC = () => {
             Suis ton score cumulé, tes derniers quiz et les badges débloqués au fil de
             ton voyage historique.
           </p>
-          <div className="flex gap-2 mt-4">
+
+          <div className="dash-actions mt-4">
             <Link to="/scores">
               <button>Scores</button>
             </Link>
@@ -54,7 +58,7 @@ const Dashboard: React.FC = () => {
               <button>Badges</button>
             </Link>
           </div>
-        </motion.div>
+        </motion.section>
       </div>
     </motion.div>
   );

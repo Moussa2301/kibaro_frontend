@@ -21,80 +21,140 @@ import Multiplayer from "./pages/Multiplayer";
 import RoomPlay from "./pages/RoomPlay";
 import RoomResult from "./pages/RoomResult";
 
-
-
-
-
 const App: React.FC = () => {
-
   return (
-    <div className="app-shell">
+    <div className="min-h-screen bg-transparent">
       <Navbar />
-      <main>
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route
-            path="/chapters"
-            element={
-              <ProtectedRoute>
-                <Chapters />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/chapters/:id/quiz"
-            element={
-              <ProtectedRoute>
-                <ChapterQuiz />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/scores"
-            element={
-              <ProtectedRoute>
-                <Scores />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/badges"
-            element={
-              <ProtectedRoute>
-                <Badges />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/duel" element={<ProtectedRoute><DuelHome /></ProtectedRoute>} />
-          <Route path="/duel/wait/:id" element={<ProtectedRoute><DuelWait /></ProtectedRoute>} />
-          <Route path="/duel/play/:id" element={<ProtectedRoute><DuelPlay /></ProtectedRoute>} />
-          <Route path="/duel/result/:id" element={<ProtectedRoute><DuelResult /></ProtectedRoute>} />
-          {/*<Route path="/room/lobby/:id" element={<ProtectedRoute><RoomLobby /></ProtectedRoute>} />*/}
-          <Route path="/multiplayer" element={<ProtectedRoute><Multiplayer /></ProtectedRoute>} />
-          <Route path="/room/:joinCode" element={<RoomJoin />} />
-          <Route path="/room/lobby/:roomId" element={<RoomLobby />} />
-          <Route path="/room/play/:roomId" element={<RoomPlay />} />
-          <Route path="/room/result/:roomId" element={<RoomResult />} />
 
-          <Route
-            path="/admin"
-            element={
-              <AdminRoute>
-                <Admin />
-              </AdminRoute>
-            }
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+      {/* ✅ Main responsive */}
+      <main className="w-full">
+        {/* ✅ container + padding mobile-first */}
+        <div className="mx-auto w-full max-w-6xl px-3 py-4 sm:px-6 sm:py-6">
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+
+            <Route
+              path="/chapters"
+              element={
+                <ProtectedRoute>
+                  <Chapters />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/chapters/:id/quiz"
+              element={
+                <ProtectedRoute>
+                  <ChapterQuiz />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/scores"
+              element={
+                <ProtectedRoute>
+                  <Scores />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/badges"
+              element={
+                <ProtectedRoute>
+                  <Badges />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/duel"
+              element={
+                <ProtectedRoute>
+                  <DuelHome />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/duel/wait/:id"
+              element={
+                <ProtectedRoute>
+                  <DuelWait />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/duel/play/:id"
+              element={
+                <ProtectedRoute>
+                  <DuelPlay />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/duel/result/:id"
+              element={
+                <ProtectedRoute>
+                  <DuelResult />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/multiplayer"
+              element={
+                <ProtectedRoute>
+                  <Multiplayer />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/room/:joinCode" element={<RoomJoin />} />
+            <Route
+              path="/room/lobby/:roomId"
+              element={
+                <ProtectedRoute>
+                  <RoomLobby />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/room/play/:roomId"
+              element={
+                <ProtectedRoute>
+                  <RoomPlay />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/room/result/:roomId"
+              element={
+                <ProtectedRoute>
+                  <RoomResult />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <Admin />
+                </AdminRoute>
+              }
+            />
+
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
       </main>
     </div>
   );

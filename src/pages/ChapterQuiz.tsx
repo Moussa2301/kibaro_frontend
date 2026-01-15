@@ -39,9 +39,7 @@ const ChapterQuiz: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [answered, setAnswered] = useState(false);
-  const [lastAnswerCorrect, setLastAnswerCorrect] = useState<boolean | null>(
-    null
-  );
+  const [lastAnswerCorrect, setLastAnswerCorrect] = useState<boolean | null>(null);
   const [finished, setFinished] = useState(false);
 
   useEffect(() => {
@@ -51,14 +49,12 @@ const ChapterQuiz: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        // 🔹 On utilise la route existante /chapters/:id
         const res = await api.get(`/chapters/${id}`);
         const raw = res.data;
 
         let chapter: Chapter;
         let questions: Question[] = [];
 
-        // Cas 1 : le backend renvoie { chapter, questions }
         if (raw.chapter) {
           chapter = raw.chapter;
           if (raw.questions && Array.isArray(raw.questions)) {
@@ -67,7 +63,6 @@ const ChapterQuiz: React.FC = () => {
             questions = raw.chapter.questions;
           }
         } else {
-          // Cas 2 : le backend renvoie directement le chapitre avec questions incluses
           chapter = raw;
           if (raw.questions && Array.isArray(raw.questions)) {
             questions = raw.questions;
@@ -106,7 +101,6 @@ const ChapterQuiz: React.FC = () => {
     return ((currentIndex + 1) / totalQuestions) * 100;
   }, [currentIndex, totalQuestions]);
 
-  // Envoie le score au backend + rafraîchit les points dans le header
   const submitScore = async (finalScore: number) => {
     if (!chapter) return;
     try {
@@ -120,7 +114,6 @@ const ChapterQuiz: React.FC = () => {
         ],
       });
 
-      // met à jour les points de l'utilisateur dans le contexte (header)
       await refreshUserPoints();
     } catch (e) {
       console.error("Erreur lors de l'enregistrement du score", e);
@@ -135,9 +128,7 @@ const ChapterQuiz: React.FC = () => {
     setLastAnswerCorrect(isGood);
 
     const newScore = isGood ? score + 1 : score;
-    if (isGood) {
-      setScore((prev) => prev + 1);
-    }
+    if (isGood) setScore((prev) => prev + 1);
 
     setTimeout(() => {
       if (currentIndex + 1 < totalQuestions) {
@@ -145,7 +136,6 @@ const ChapterQuiz: React.FC = () => {
         setAnswered(false);
         setLastAnswerCorrect(null);
       } else {
-        // fin du quiz : on envoie le score final au backend
         submitScore(newScore);
         setFinished(true);
       }
@@ -160,8 +150,7 @@ const ChapterQuiz: React.FC = () => {
       <div className="card">
         <h2>Aucun quiz disponible pour ce chapitre.</h2>
         <p style={{ fontSize: "0.9rem", color: "#9ca3af" }}>
-          Vérifie que ce chapitre contient bien des questions dans l’espace
-          admin.
+          Vérifie que ce chapitre contient bien des questions dans l’espace admin.
         </p>
         <div className="mt-4">
           <Link to="/chapters">
@@ -174,28 +163,24 @@ const ChapterQuiz: React.FC = () => {
 
   if (finished) {
     return (
-      <motion.div
-        className="card"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
+      <motion.div className="card" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
         <h1>Quiz terminé 🎉</h1>
-        <p
-          className="mt-2"
-          style={{ fontSize: "0.95rem", color: "#9ca3af" }}
-        >
+
+        <p className="mt-2" style={{ fontSize: "0.95rem", color: "#9ca3af" }}>
           Chapitre : <strong>{chapter.title}</strong>
         </p>
+
         <p className="mt-2" style={{ fontSize: "1.1rem" }}>
           Ton score : <strong>{score}</strong> / {totalQuestions}
         </p>
 
-        <div className="mt-4 flex-between">
-          <Link to="/chapters">
-            <button>Retour aux chapitres</button>
+        <div className="mt-4 quiz-footer">
+          <Link to="/chapters" className="full-link">
+            <button className="w-100">Retour aux chapitres</button>
           </Link>
+
           <button
+            className="w-100"
             onClick={() => {
               setCurrentIndex(0);
               setScore(0);
@@ -212,78 +197,41 @@ const ChapterQuiz: React.FC = () => {
   }
 
   return (
-    <motion.div
-      className="card"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div className="flex-between">
-        <div>
-          <h1>{chapter.title}</h1>
-          <p
-            className="mt-1"
-            style={{ fontSize: "0.85rem", color: "#9ca3af" }}
-          >
-            Période : {chapter.period} • Question {currentIndex + 1} /{" "}
-            {totalQuestions}
+    <motion.div className="card" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+      {/* Header responsive */}
+      <div className="quiz-header">
+        <div className="quiz-title">
+          <h1 className="quiz-h1">{chapter.title}</h1>
+          <p className="mt-1 quiz-sub">
+            Période : {chapter.period} • Question {currentIndex + 1} / {totalQuestions}
           </p>
         </div>
-        <div className="chip">
+
+        <div className="chip quiz-chip">
           <span className="chip-dot" />
           <span>Score : {score}</span>
         </div>
       </div>
 
-      {/* Barre de progression */}
+      {/* Progress */}
       <div className="mt-4">
-        <div
-          style={{
-            width: "100%",
-            height: "6px",
-            borderRadius: "999px",
-            backgroundColor: "#111827",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              width: `${progress}%`,
-              height: "100%",
-              backgroundColor: "#10b981",
-              transition: "width 0.3s ease",
-            }}
-          />
+        <div className="quiz-progress">
+          <div className="quiz-progress-bar" style={{ width: `${progress}%` }} />
         </div>
       </div>
 
       {/* Question */}
       <div className="mt-4">
-        <h2 style={{ fontSize: "1.1rem" }}>{currentQuestion.text}</h2>
-        <p
-          className="mt-1"
-          style={{ fontSize: "0.8rem", color: "#9ca3af" }}
-        >
-          Choisis la bonne réponse.
-        </p>
+        <h2 className="quiz-q">{currentQuestion.text}</h2>
+        <p className="mt-1 quiz-help">Choisis la bonne réponse.</p>
 
-        <div className="mt-4" style={{ display: "grid", gap: "0.6rem" }}>
+        <div className="mt-4 quiz-answers">
           {currentQuestion.answers.map((answer, idx) => (
             <button
               key={answer.id ?? idx}
               onClick={() => handleAnswer(answer)}
               disabled={answered}
-              style={{
-                textAlign: "left",
-                width: "100%",
-                padding: "0.7rem 0.9rem",
-                borderRadius: "0.7rem",
-                border: "1px solid #374151",
-                backgroundColor: "#020617",
-                color: "#e5e7eb",
-                cursor: answered ? "default" : "pointer",
-                opacity: answered ? 0.9 : 1,
-              }}
+              className="quiz-answer-btn"
             >
               {answer.text}
             </button>
@@ -291,30 +239,25 @@ const ChapterQuiz: React.FC = () => {
         </div>
 
         {lastAnswerCorrect !== null && (
-          <div
-            className="mt-3"
-            style={{ fontSize: "0.9rem", fontWeight: 500 }}
-          >
+          <div className="mt-3" style={{ fontSize: "0.95rem", fontWeight: 600 }}>
             {lastAnswerCorrect ? (
               <span style={{ color: "#34d399" }}>✅ Bonne réponse !</span>
             ) : (
-              <span style={{ color: "#fb7185" }}>
-                ❌ Mauvaise réponse, regarde la suivante…
-              </span>
+              <span style={{ color: "#fb7185" }}>❌ Mauvaise réponse, regarde la suivante…</span>
             )}
           </div>
         )}
       </div>
 
-      <div className="mt-6 flex-between">
-        <Link to="/chapters">
-          <button style={{ backgroundColor: "#111827" }}>
+      {/* Footer responsive */}
+      <div className="mt-6 quiz-footer-inline">
+        <Link to="/chapters" className="full-link">
+          <button className="w-100" style={{ backgroundColor: "#111827" }}>
             ← Retour aux chapitres
           </button>
         </Link>
-        <span style={{ fontSize: "0.8rem", color: "#6b7280" }}>
-          Ta progression est enregistrée.
-        </span>
+
+        <span className="quiz-note">Ta progression est enregistrée.</span>
       </div>
     </motion.div>
   );

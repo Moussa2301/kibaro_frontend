@@ -3,29 +3,15 @@ import { Link } from "react-router-dom";
 import api from "../api/axios";
 import { motion } from "framer-motion";
 
-// Catégories de chapitres
 type ChapterCategory = "tous" | "guinee" | "afrique" | "mande" | "general";
 
-// Détermination de la catégorie en fonction du titre
 function getChapterCategory(title: string): ChapterCategory {
   const t = title.toLowerCase();
 
-  if (t.includes("guinée") || t.includes("guinéen") || t.includes("syli")) {
-    return "guinee";
-  }
-  if (t.includes("afrique") || t.includes("panafricain")) {
-    return "afrique";
-  }
-  if (t.includes("mandé") || t.includes("mali") || t.includes("soundiata")) {
-    return "mande";
-  }
-  if (
-    t.includes("général") ||
-    t.includes("quiz rapide") ||
-    t.includes("niveau")
-  ) {
-    return "general";
-  }
+  if (t.includes("guinée") || t.includes("guinéen") || t.includes("syli")) return "guinee";
+  if (t.includes("afrique") || t.includes("panafricain")) return "afrique";
+  if (t.includes("mandé") || t.includes("mali") || t.includes("soundiata")) return "mande";
+  if (t.includes("général") || t.includes("quiz rapide") || t.includes("niveau")) return "general";
   return "tous";
 }
 
@@ -41,17 +27,17 @@ const Chapters: React.FC = () => {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const [search, setSearch] = useState("");
   const [periodFilter, setPeriodFilter] = useState<string>("all");
-  const [categoryFilter, setCategoryFilter] =
-    useState<ChapterCategory>("tous");
+  const [categoryFilter, setCategoryFilter] = useState<ChapterCategory>("tous");
 
   useEffect(() => {
     const load = async () => {
       try {
         const res = await api.get("/chapters");
         setChapters(res.data);
-      } catch (err: any) {
+      } catch {
         setError("Impossible de charger les chapitres");
       } finally {
         setLoading(false);
@@ -70,21 +56,15 @@ const Chapters: React.FC = () => {
 
   const filteredChapters = useMemo(() => {
     return chapters
-      .map((ch) => ({
-        ...ch,
-        category: getChapterCategory(ch.title),
-      }))
+      .map((ch) => ({ ...ch, category: getChapterCategory(ch.title) }))
       .filter((ch) => {
         const matchesSearch =
           search.trim().length === 0 ||
           ch.title.toLowerCase().includes(search.toLowerCase()) ||
           ch.content.toLowerCase().includes(search.toLowerCase());
 
-        const matchesPeriod =
-          periodFilter === "all" || ch.period === periodFilter;
-
-        const matchesCategory =
-          categoryFilter === "tous" || ch.category === categoryFilter;
+        const matchesPeriod = periodFilter === "all" || ch.period === periodFilter;
+        const matchesCategory = categoryFilter === "tous" || ch.category === categoryFilter;
 
         return matchesSearch && matchesPeriod && matchesCategory;
       });
@@ -100,28 +80,23 @@ const Chapters: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="flex-between">
-        <div>
+      {/* Header responsive */}
+      <div className="chapters-header">
+        <div className="chapters-title">
           <h1>Chapitres</h1>
-          <p
-            className="mt-2"
-            style={{ fontSize: "0.9rem", color: "#9ca3af" }}
-          >
-            Choisis un chapitre pour explorer l'histoire puis lancer un quiz
-            associé.
+          <p className="mt-2 chapters-subtitle">
+            Choisis un chapitre pour explorer l'histoire puis lancer un quiz associé.
           </p>
         </div>
-        <div className="chip">
+
+        <div className="chip chapters-chip">
           <span className="chip-dot" />
           <span>{chapters.length} chapitres</span>
         </div>
       </div>
 
-      {/* Filtres par catégorie */}
-      <div
-        className="mt-4"
-        style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}
-      >
+      {/* Filtres catégories */}
+      <div className="mt-4 chapters-cats">
         {[
           { id: "tous", label: "Tous" },
           { id: "guinee", label: "Guinée" },
@@ -131,17 +106,9 @@ const Chapters: React.FC = () => {
         ].map((btn) => (
           <button
             key={btn.id}
+            type="button"
             onClick={() => setCategoryFilter(btn.id as ChapterCategory)}
-            style={{
-              padding: "0.35rem 0.8rem",
-              borderRadius: "999px",
-              border: "1px solid #374151",
-              fontSize: "0.8rem",
-              backgroundColor:
-                categoryFilter === btn.id ? "#10b981" : "#111827",
-              color: categoryFilter === btn.id ? "#ffffff" : "#e5e7eb",
-              cursor: "pointer",
-            }}
+            className={categoryFilter === btn.id ? "cat-btn cat-btn-active" : "cat-btn"}
           >
             {btn.label}
           </button>
@@ -149,10 +116,7 @@ const Chapters: React.FC = () => {
       </div>
 
       {/* Recherche + période */}
-      <div
-        className="mt-4 grid grid-2"
-        style={{ alignItems: "flex-end" }}
-      >
+      <div className="mt-4 chapters-filters">
         <div>
           <label>Recherche</label>
           <input
@@ -161,12 +125,10 @@ const Chapters: React.FC = () => {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+
         <div>
           <label>Période</label>
-          <select
-            value={periodFilter}
-            onChange={(e) => setPeriodFilter(e.target.value)}
-          >
+          <select value={periodFilter} onChange={(e) => setPeriodFilter(e.target.value)}>
             <option value="all">Toutes les périodes</option>
             {periods.map((p) => (
               <option key={p} value={p}>
@@ -184,7 +146,7 @@ const Chapters: React.FC = () => {
           </p>
         )}
 
-        <div className="mt-2 grid grid-2">
+        <div className="mt-2 chapters-grid">
           {filteredChapters.map((ch, index) => (
             <motion.div
               key={ch.id}
@@ -193,33 +155,26 @@ const Chapters: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.03, duration: 0.25 }}
             >
-              <div className="flex-between">
-                <div>
-                  <h3>
+              {/* Card header responsive */}
+              <div className="chapter-card-header">
+                <div className="chapter-card-title">
+                  <h3 className="chapter-h3">
                     {ch.order}. {ch.title}
                   </h3>
-                  <p
-                    style={{ fontSize: "0.8rem", color: "#9ca3af" }}
-                  >
-                    Période : {ch.period}
-                  </p>
+                  <p className="chapter-period">Période : {ch.period}</p>
                 </div>
                 <span className="badge">Chapitre</span>
               </div>
-              <p
-                className="mt-2"
-                style={{ fontSize: "0.85rem", color: "#9ca3af" }}
-              >
-                {ch.content.length > 140
-                  ? ch.content.slice(0, 140) + "…"
-                  : ch.content}
+
+              <p className="mt-2 chapter-excerpt">
+                {ch.content.length > 140 ? ch.content.slice(0, 140) + "…" : ch.content}
               </p>
-              <div className="mt-4 flex-between">
-                <span style={{ fontSize: "0.8rem", color: "#6b7280" }}>
-                  Quiz disponible
-                </span>
-                <Link to={`/chapters/${ch.id}/quiz`}>
-                  <button>Jouer le quiz</button>
+
+              {/* Card footer responsive */}
+              <div className="mt-4 chapter-card-footer">
+                <span className="chapter-footnote">Quiz disponible</span>
+                <Link to={`/chapters/${ch.id}/quiz`} className="full-link">
+                  <button className="w-100">Jouer le quiz</button>
                 </Link>
               </div>
             </motion.div>
