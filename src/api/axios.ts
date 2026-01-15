@@ -22,13 +22,14 @@
 });
 // export default api;*/
 // src/api/axios.ts
+// src/api/axios.ts
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://kibaro-backend.onrender.com/api", // ✅ utilise le proxy Vite
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4001/api",
 });
 
-// Ajoute automatiquement le token
+// inject token automatiquement si présent
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
