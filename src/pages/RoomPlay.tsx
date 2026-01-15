@@ -9,7 +9,7 @@ type Room = {
   id: string;
   status: "WAITING" | "RUNNING" | "FINISHED" | string;
   chapterId?: string | null;
-  Chapter?: { id: string; title: string } | null; // ton prisma model a "Chapter"
+  Chapter?: { id: string; title: string } | null;
   host?: { id: string; username: string } | null;
 };
 
@@ -52,7 +52,7 @@ const RoomPlay: React.FC = () => {
     setTime(0);
   };
 
-  // 1) Charger room + attendre RUNNING
+  // Charger room + attendre RUNNING
   useEffect(() => {
     if (!roomId) return;
 
@@ -68,18 +68,14 @@ const RoomPlay: React.FC = () => {
 
         setRoom(r);
 
-        // si terminé → résultats direct
         if (r.status === "FINISHED") {
           navigate(`/room/result/${roomId}`, { replace: true });
           return;
         }
 
-        // si RUNNING → charger les questions UNE fois
         if (r.status === "RUNNING") {
-          // stop polling
           if (intervalId) clearInterval(intervalId);
 
-          // si déjà chargé, ne recharge pas
           if (questions.length === 0) {
             await loadQuestionsForRoom(roomId);
           }
@@ -95,7 +91,6 @@ const RoomPlay: React.FC = () => {
     setLoading(true);
     fetchRoom();
 
-    // poll tant que pas RUNNING
     intervalId = setInterval(fetchRoom, 1200);
 
     return () => {
@@ -124,14 +119,12 @@ const RoomPlay: React.FC = () => {
 
     const gained = a.isCorrect ? 1 : 0;
 
-    // score final “fiable” même sur la dernière question
     setScore((prev) => {
       const newScore = prev + gained;
 
       if (idx < total - 1) {
         setIdx((v) => v + 1);
       } else {
-        // dernière question → finish avec newScore
         void finish(newScore);
       }
 
@@ -142,37 +135,44 @@ const RoomPlay: React.FC = () => {
   // UI states
   if (loading) {
     return (
-      <div style={{ maxWidth: 760, margin: "40px auto", padding: 16 }}>
-        <h2>Multijoueur 👥</h2>
-        <p>Chargement…</p>
+      <div className="card">
+        <h1>Multijoueur 👥</h1>
+        <p className="mt-2" style={{ color: "#9ca3af" }}>Chargement…</p>
       </div>
     );
   }
 
-  if (err) {
+  if (err && !room) {
     return (
-      <div style={{ maxWidth: 760, margin: "40px auto", padding: 16 }}>
-        <h2>Multijoueur 👥</h2>
-        <p style={{ color: "#ff6b6b" }}>{err}</p>
-        <button onClick={() => navigate("/multijoueur")} style={{ padding: 12 }}>
+      <div className="card">
+        <h1>Multijoueur 👥</h1>
+        <p className="mt-2 form-error">{err}</p>
+        <button onClick={() => navigate("/multiplayer")} className="btn-block">
           Retour
         </button>
       </div>
     );
   }
 
-  // Si room pas RUNNING, on affiche attente
+  // Attente (pas RUNNING)
   if (room && room.status !== "RUNNING") {
     return (
-      <div style={{ maxWidth: 760, margin: "40px auto", padding: 16 }}>
-        <h2>Room — {room?.Chapter?.title ?? "Quiz"}</h2>
-        <p style={{ opacity: 0.85, marginTop: 8 }}>
-          Statut : <b>{room.status}</b>
-        </p>
-        <p style={{ marginTop: 10, opacity: 0.8 }}>
-          En attente du démarrage par l’hôte…
-        </p>
-        <button onClick={() => navigate(`/room/lobby/${roomId}`)} style={{ marginTop: 12, padding: 12 }}>
+      <div className="card">
+        <div className="flex-between" style={{ gap: "0.75rem", flexWrap: "wrap" }}>
+          <div>
+            <h1>Room — {room?.Chapter?.title ?? "Quiz"}</h1>
+            <p className="mt-2" style={{ color: "#9ca3af", fontSize: "0.9rem" }}>
+              En attente du démarrage par l’hôte…
+            </p>
+          </div>
+          <span className="badge">{room.status}</span>
+        </div>
+
+        <button
+          onClick={() => navigate(`/room/lobby/${roomId}`)}
+          className="btn-block"
+          style={{ marginTop: "1rem" }}
+        >
           Retour Lobby
         </button>
       </div>
@@ -181,48 +181,68 @@ const RoomPlay: React.FC = () => {
 
   if (!current) {
     return (
-      <div style={{ maxWidth: 760, margin: "40px auto", padding: 16 }}>
-        <h2>Room — {room?.Chapter?.title ?? "Quiz"}</h2>
-        <p>Aucune question à afficher.</p>
-        <button onClick={() => navigate("/multijoueur")} style={{ padding: 12 }}>
+      <div className="card">
+        <h1>Room — {room?.Chapter?.title ?? "Quiz"}</h1>
+        <p className="mt-2" style={{ color: "#9ca3af" }}>
+          Aucune question à afficher.
+        </p>
+        <button onClick={() => navigate("/multiplayer")} className="btn-block">
           Retour
         </button>
       </div>
     );
   }
 
+  const progress = total > 0 ? Math.round(((idx + 1) / total) * 100) : 0;
+
   return (
-    <div style={{ maxWidth: 760, margin: "40px auto", padding: 16 }}>
-      <h2>Room — {room?.Chapter?.title ?? "Quiz"}</h2>
-
-      <div style={{ opacity: 0.9, marginTop: 8 }}>
-        <b>Score :</b> {score} / {total} &nbsp; | &nbsp; <b>Temps :</b> {time}s
-      </div>
-
-      <div
-        style={{
-          marginTop: 16,
-          border: "1px solid rgba(255,255,255,.15)",
-          borderRadius: 14,
-          padding: 16,
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-          <div>
-            <b>Question</b> {idx + 1} / {total}
+    <div className="card roomplay">
+      {/* Header sticky (mobile-friendly) */}
+      <div className="roomplay-topbar">
+        <div className="roomplay-topbar-left">
+          <div className="roomplay-title">
+            {room?.Chapter?.title ?? "Quiz"}
           </div>
-          <div style={{ opacity: 0.8 }}>Statut: {room?.status}</div>
+          <div className="roomplay-sub">
+            Question <b>{idx + 1}</b> / {total} · {progress}%
+          </div>
         </div>
 
-        <h3 style={{ marginTop: 12 }}>{current.text}</h3>
+        <div className="roomplay-stats">
+          <span className="chip">
+            <span className="chip-dot" />
+            <span>{score}/{total}</span>
+          </span>
+          <span className="chip">
+            <span className="chip-dot" />
+            <span>{time}s</span>
+          </span>
+        </div>
+      </div>
 
-        <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
+      {err && <p className="mt-2 form-error">{err}</p>}
+
+      {/* Progress bar */}
+      <div className="mt-4">
+        <div className="roomplay-progress">
+          <div className="roomplay-progress-fill" style={{ width: `${progress}%` }} />
+        </div>
+      </div>
+
+      {/* Question */}
+      <div className="mt-4">
+        <h2 style={{ fontSize: "1.1rem" }}>{current.text}</h2>
+        <p className="mt-1" style={{ color: "#9ca3af", fontSize: "0.85rem" }}>
+          Choisis la bonne réponse.
+        </p>
+
+        <div className="mt-4 roomplay-answers">
           {current.answers?.map((a) => (
             <button
               key={a.id}
               onClick={() => answerQuestion(a)}
               disabled={sending}
-              style={{ textAlign: "left", padding: 12, borderRadius: 12 }}
+              className="roomplay-answer"
             >
               {a.text}
             </button>
@@ -232,9 +252,18 @@ const RoomPlay: React.FC = () => {
         <button
           onClick={() => finish(score)}
           disabled={sending}
-          style={{ marginTop: 16, padding: 12, width: "100%" }}
+          className="btn-block"
+          style={{ marginTop: "1rem" }}
         >
           {sending ? "Envoi..." : "Terminer"}
+        </button>
+
+        <button
+          onClick={() => navigate(`/room/lobby/${roomId}`)}
+          className="btn-block"
+          style={{ background: "#111827" }}
+        >
+          Retour Lobby
         </button>
       </div>
     </div>

@@ -39,7 +39,6 @@ const RoomLobby: React.FC = () => {
   const start = async () => {
     if (!room?.id) return;
 
-    // ✅ sécurité côté front: seul l'hôte peut démarrer
     if (!isHost) {
       setErr("Seul l'hôte peut démarrer la partie.");
       return;
@@ -54,7 +53,6 @@ const RoomLobby: React.FC = () => {
     }
   };
 
-  // ✅ polling toutes les 1500ms + redirection auto si RUNNING
   useEffect(() => {
     if (!roomId) return;
 
@@ -69,7 +67,6 @@ const RoomLobby: React.FC = () => {
         const data: Room = res.data;
         setRoom(data);
 
-        // ✅ IMPORTANT: si l'hôte a démarré, l'invité bascule automatiquement
         if (data?.status === "RUNNING") {
           navigate(`/room/play/${data.id}`);
         }
@@ -101,22 +98,21 @@ const RoomLobby: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: 860, margin: "40px auto", padding: 16 }}>
-        <h2>Lobby 👥</h2>
-        <p>Chargement…</p>
+      <div className="card">
+        <h1>Lobby 👥</h1>
+        <p className="mt-2" style={{ color: "#9ca3af" }}>
+          Chargement…
+        </p>
       </div>
     );
   }
 
-  if (err) {
+  if (err && !room) {
     return (
-      <div style={{ maxWidth: 860, margin: "40px auto", padding: 16 }}>
-        <h2>Lobby 👥</h2>
-        <p style={{ color: "#ff6b6b" }}>{err}</p>
-        <button
-          onClick={() => navigate("/multiplayer")}
-          style={{ marginTop: 12, padding: 12 }}
-        >
+      <div className="card">
+        <h1>Lobby 👥</h1>
+        <p className="mt-2 form-error">{err}</p>
+        <button onClick={() => navigate("/multiplayer")} className="btn-block">
           Retour
         </button>
       </div>
@@ -126,99 +122,102 @@ const RoomLobby: React.FC = () => {
   if (!room) return null;
 
   return (
-    <div style={{ maxWidth: 860, margin: "40px auto", padding: 16 }}>
-      <h2>Lobby 👥</h2>
-
-      <div style={{ opacity: 0.9, marginTop: 8 }}>
+    <div className="card">
+      <div className="flex-between" style={{ gap: "0.75rem", flexWrap: "wrap" }}>
         <div>
-          <b>Chapitre :</b> {room.chapter?.title ?? "—"}
+          <h1>Lobby 👥</h1>
+          <p className="mt-2" style={{ color: "#9ca3af", fontSize: "0.9rem" }}>
+            Invite tes amis avec le lien, puis attends le démarrage.
+          </p>
         </div>
-        <div>
-          <b>Statut :</b> {room.status}
-        </div>
-        <div>
-          <b>Host :</b> {room.host?.username ?? "—"}
-        </div>
+        <span className="badge">{room.status}</span>
       </div>
 
-      <div
-        style={{
-          marginTop: 14,
-          border: "1px solid rgba(255,255,255,.15)",
-          borderRadius: 14,
-          padding: 16,
-        }}
-      >
-        <h3>Inviter des joueurs</h3>
+      {err && <p className="mt-2 form-error">{err}</p>}
 
-        <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+      {/* Infos */}
+      <section className="card mt-4">
+        <h2>Informations</h2>
+
+        <div className="mt-2 lobby-info">
+          <div className="lobby-info-item">
+            <span>Chapitre</span>
+            <strong>{room.chapter?.title ?? "—"}</strong>
+          </div>
+          <div className="lobby-info-item">
+            <span>Statut</span>
+            <strong>{room.status}</strong>
+          </div>
+          <div className="lobby-info-item">
+            <span>Host</span>
+            <strong>{room.host?.username ?? "—"}</strong>
+          </div>
+        </div>
+      </section>
+
+      {/* Invitation */}
+      <section className="card mt-4">
+        <h2>Inviter des joueurs</h2>
+
+        <label className="mt-2">Lien de partage</label>
+        <div className="lobby-share">
           <input
             value={shareUrl}
             readOnly
-            style={{ flex: 1, padding: 10 }}
             onFocus={(e) => e.currentTarget.select()}
           />
-          <button onClick={copyLink} style={{ padding: "10px 12px" }}>
+          <button type="button" onClick={copyLink}>
             Copier
           </button>
         </div>
 
-        <div style={{ marginTop: 10, opacity: 0.8 }}>
-          JoinCode : <b>{room.joinCode}</b>
+        <p className="mt-2" style={{ color: "#9ca3af", fontSize: "0.9rem" }}>
+          JoinCode : <strong>{room.joinCode}</strong>
+        </p>
+      </section>
+
+      {/* Joueurs */}
+      <section className="card mt-4">
+        <div className="flex-between" style={{ gap: "0.75rem", flexWrap: "wrap" }}>
+          <h2>Joueurs ({room.players?.length ?? 0})</h2>
+          <span className="chip">
+            <span className="chip-dot" />
+            <span>Auto-refresh 1.5s</span>
+          </span>
         </div>
-      </div>
 
-      <div
-        style={{
-          marginTop: 14,
-          border: "1px solid rgba(255,255,255,.15)",
-          borderRadius: 14,
-          padding: 16,
-        }}
-      >
-        <h3>Joueurs ({room.players?.length ?? 0})</h3>
-
-        <div style={{ display: "grid", gap: 10, marginTop: 10 }}>
+        <div className="mt-2 lobby-players">
           {room.players?.map((p) => (
-            <div
-              key={p.id}
-              style={{
-                border: "1px solid rgba(255,255,255,.12)",
-                borderRadius: 12,
-                padding: 12,
-                background: "rgba(255,255,255,.03)",
-              }}
-            >
+            <div key={p.id} className="lobby-player">
               {p.user?.username ?? p.userId}
+              {p.user?.id === room.host?.id && (
+                <span className="lobby-host-badge">Host</span>
+              )}
+              {p.user?.id === user?.id && (
+                <span className="lobby-me-badge">Moi</span>
+              )}
             </div>
           ))}
         </div>
 
-        <div style={{ marginTop: 14, opacity: 0.75 }}>
-          (Mise à jour automatique toutes les 1.5s)
-        </div>
-
         <button
           onClick={() => navigate("/multiplayer")}
-          style={{ marginTop: 16, padding: 12 }}
+          className="btn-block"
+          style={{ marginTop: "1rem" }}
         >
           Retour multijoueur
         </button>
 
-        {/* ✅ Seul l'hôte peut démarrer */}
         {isHost ? (
-          <button
-            onClick={start}
-            style={{ marginTop: 14, padding: 12, width: "100%" }}
-          >
-            Démarrer la partie
+          <button onClick={start} className="btn-block">
+            🚀 Démarrer la partie
           </button>
         ) : (
-          <div style={{ marginTop: 14, opacity: 0.85 }}>
+          <div className="mt-2" style={{ color: "#9ca3af", fontSize: "0.9rem" }}>
             En attente que l’hôte démarre la partie…
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 };
