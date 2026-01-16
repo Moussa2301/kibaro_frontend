@@ -21,6 +21,10 @@ const Scores: React.FC = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+const myLastTwo = [...myScores]
+  .filter(s => s.quizType === "chapter")
+  .sort((a,b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+  .slice(0, 2);
 
   const totalMyPoints = useMemo(
     () => myScores.reduce((acc, s) => acc + (typeof s.points === "number" ? s.points : 0), 0),
