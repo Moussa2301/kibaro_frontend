@@ -65,12 +65,19 @@ const Admin: React.FC = () => {
     "dashboard"
   );
 
-  // Users tab (NEW)
+  // Users tab
   const [usersList, setUsersList] = useState<AdminUser[]>([]);
   const [usersCursor, setUsersCursor] = useState<string | null>(null);
   const [usersHasNext, setUsersHasNext] = useState(true);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [usersSearch, setUsersSearch] = useState("");
+
+  // Reset password (NEW)
+  const [tempPwdModal, setTempPwdModal] = useState<{
+    username: string;
+    tempPassword: string;
+  } | null>(null);
+  const [resetLoadingId, setResetLoadingId] = useState<string | null>(null);
 
   // Chapter form
   const [title, setTitle] = useState("");
@@ -92,9 +99,7 @@ const Admin: React.FC = () => {
   );
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
-  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(
-    null
-  );
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
 
   // Badges
   const [badges, setBadges] = useState<Badge[]>([]);
@@ -165,7 +170,7 @@ const Admin: React.FC = () => {
     }
   };
 
-  // ✅ NEW: load all users with pagination
+  // Users pagination
   const loadAdminUsers = async (mode: "reset" | "more" = "reset") => {
     if (loadingUsers) return;
 
@@ -174,6 +179,8 @@ const Admin: React.FC = () => {
       setError(null);
 
       const cursor = mode === "more" ? usersCursor : null;
+
+      // si tu ajoutes une recherche serveur plus tard: params: { take: 50, cursor, q: usersSearch || undefined }
       const res = await api.get("/admin/users", {
         params: { take: 50, cursor: cursor ?? undefined },
       });
@@ -181,13 +188,41 @@ const Admin: React.FC = () => {
       const { items, nextCursor, hasNextPage } = res.data;
 
       setUsersList((prev) => (mode === "more" ? [...prev, ...items] : items));
-      setUsersCursor(nextCursor);
+      setUsersCursor(nextCursor ?? null);
       setUsersHasNext(Boolean(hasNextPage));
     } catch (e) {
       console.error(e);
       setError("Impossible de charger la liste des inscrits");
     } finally {
       setLoadingUsers(false);
+    }
+  };
+
+  // Reset password action (NEW)
+  const resetUserPassword = async (u: AdminUser) => {
+    const ok = window.confirm(
+      `Réinitialiser le mot de passe de "${u.username}" ?\n\nLe serveur va générer un mot de passe temporaire.`
+    );
+    if (!ok) return;
+
+    try {
+      setError(null);
+      setMessage(null);
+      setResetLoadingId(u.id);
+
+      const res = await api.post(`/admin/users/${u.id}/reset-password`);
+      const tempPassword = res.data?.tempPassword;
+
+      if (!tempPassword) {
+        setError("Reset OK mais mot de passe temporaire manquant (réponse invalide).");
+        return;
+      }
+
+      setTempPwdModal({ username: u.username, tempPassword });
+    } catch (e: any) {
+      setError(e?.response?.data?.msg || "Impossible de réinitialiser le mot de passe");
+    } finally {
+      setResetLoadingId(null);
     }
   };
 
@@ -210,7 +245,7 @@ const Admin: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedChapterId]);
 
-  // ✅ When opening "users" tab, fetch users
+  // When opening "users" tab, fetch users
   useEffect(() => {
     if (activeTab === "users") {
       loadAdminUsers("reset");
@@ -225,12 +260,7 @@ const Admin: React.FC = () => {
     setSubmitting(true);
 
     try {
-      await api.post("/chapters", {
-        title,
-        content,
-        period,
-        order: Number(order),
-      });
+      await api.post("/chapters", { title, content, period, order: Number(order) });
       setMessage("Chapitre créé avec succès.");
       setTitle("");
       setContent("");
@@ -244,14 +274,8 @@ const Admin: React.FC = () => {
     }
   };
 
-  const handleAnswerChange = (
-    index: number,
-    field: "text" | "isCorrect",
-    value: any
-  ) => {
-    setAnswers((prev) =>
-      prev.map((a, i) => (i === index ? { ...a, [field]: value } : a))
-    );
+  const handleAnswerChange = (index: number, field: "text" | "isCorrect", value: any) => {
+    setAnswers((prev) => prev.map((a, i) => (i === index ? { ...a, [field]: value } : a)));
   };
 
   const resetQuestionForm = () => {
@@ -276,17 +300,10 @@ const Admin: React.FC = () => {
     setSubmitting(true);
     try {
       if (editingQuestionId) {
-        await api.put(`/questions/${editingQuestionId}`, {
-          text: questionText,
-          answers: validAnswers,
-        });
+        await api.put(`/questions/${editingQuestionId}`, { text: questionText, answers: validAnswers });
         setMessage("Question mise à jour avec succès.");
       } else {
-        await api.post("/questions", {
-          chapterId: selectedChapterId,
-          text: questionText,
-          answers: validAnswers,
-        });
+        await api.post("/questions", { chapterId: selectedChapterId, text: questionText, answers: validAnswers });
         setMessage("Question créée avec succès.");
       }
       resetQuestionForm();
@@ -375,9 +392,7 @@ const Admin: React.FC = () => {
       console.error(err);
       setError(
         err?.response?.data?.msg ||
-          (editingBadgeId
-            ? "Erreur lors de la mise à jour du badge"
-            : "Erreur lors de la création du badge")
+          (editingBadgeId ? "Erreur lors de la mise à jour du badge" : "Erreur lors de la création du badge")
       );
     } finally {
       setSubmitting(false);
@@ -414,10 +429,7 @@ const Admin: React.FC = () => {
   const filteredUsers = usersList.filter((u) => {
     const q = usersSearch.trim().toLowerCase();
     if (!q) return true;
-    return (
-      u.username.toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q)
-    );
+    return u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
   });
 
   return (
@@ -533,53 +545,53 @@ const Admin: React.FC = () => {
                         Aucune donnée.
                       </p>
                     ) : (() => {
-                      const entries = Object.entries(dashboard.frequency.quizPlaysPerDay).sort(
-                        ([a], [b]) => a.localeCompare(b)
-                      );
-                      const max = Math.max(...entries.map(([, v]) => v), 1);
+                        const entries = Object.entries(dashboard.frequency.quizPlaysPerDay).sort(([a], [b]) =>
+                          a.localeCompare(b)
+                        );
+                        const max = Math.max(...entries.map(([, v]) => v), 1);
 
-                      return (
-                        <div className="mt-3" style={{ display: "grid", gap: "0.6rem" }}>
-                          {entries.map(([day, count]) => {
-                            const pct = Math.round((count / max) * 100);
-                            return (
-                              <div key={day} style={{ display: "grid", gap: "0.25rem" }}>
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    fontSize: "0.85rem",
-                                  }}
-                                >
-                                  <span style={{ color: "#cbd5e1" }}>{formatDayLabel(day)}</span>
-                                  <strong style={{ color: "#e5e7eb" }}>{count}</strong>
-                                </div>
-
-                                <div
-                                  style={{
-                                    height: "10px",
-                                    borderRadius: "999px",
-                                    background: "#0b1220",
-                                    border: "1px solid #1f2937",
-                                    overflow: "hidden",
-                                  }}
-                                >
+                        return (
+                          <div className="mt-3" style={{ display: "grid", gap: "0.6rem" }}>
+                            {entries.map(([day, count]) => {
+                              const pct = Math.round((count / max) * 100);
+                              return (
+                                <div key={day} style={{ display: "grid", gap: "0.25rem" }}>
                                   <div
                                     style={{
-                                      width: `${pct}%`,
-                                      height: "100%",
-                                      borderRadius: "999px",
-                                      background: "linear-gradient(90deg, #22c55e, #0ea5e9)",
-                                      transition: "width 250ms ease",
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      fontSize: "0.85rem",
                                     }}
-                                  />
+                                  >
+                                    <span style={{ color: "#cbd5e1" }}>{formatDayLabel(day)}</span>
+                                    <strong style={{ color: "#e5e7eb" }}>{count}</strong>
+                                  </div>
+
+                                  <div
+                                    style={{
+                                      height: "10px",
+                                      borderRadius: "999px",
+                                      background: "#0b1220",
+                                      border: "1px solid #1f2937",
+                                      overflow: "hidden",
+                                    }}
+                                  >
+                                    <div
+                                      style={{
+                                        width: `${pct}%`,
+                                        height: "100%",
+                                        borderRadius: "999px",
+                                        background: "linear-gradient(90deg, #22c55e, #0ea5e9)",
+                                        transition: "width 250ms ease",
+                                      }}
+                                    />
+                                  </div>
                                 </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      );
-                    })()}
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
                   </div>
                 </div>
 
@@ -636,7 +648,7 @@ const Admin: React.FC = () => {
         </section>
       )}
 
-      {/* USERS (NEW) */}
+      {/* USERS */}
       {activeTab === "users" && (
         <section className="mt-4">
           <div className="flex-between" style={{ gap: "0.75rem", flexWrap: "wrap" }}>
@@ -673,6 +685,7 @@ const Admin: React.FC = () => {
                   <th>Niveau</th>
                   <th>Rôle</th>
                   <th>Inscrit le</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
 
@@ -687,12 +700,21 @@ const Admin: React.FC = () => {
                     <td>{u.level}</td>
                     <td>{u.role}</td>
                     <td>{new Date(u.createdAt).toLocaleDateString()}</td>
+                    <td>
+                      <button
+                        type="button"
+                        onClick={() => resetUserPassword(u)}
+                        disabled={resetLoadingId === u.id}
+                      >
+                        {resetLoadingId === u.id ? "Reset..." : "Reset MDP"}
+                      </button>
+                    </td>
                   </tr>
                 ))}
 
                 {filteredUsers.length === 0 && (
                   <tr>
-                    <td colSpan={6} style={{ padding: "0.8rem 0", color: "#9ca3af" }}>
+                    <td colSpan={7} style={{ padding: "0.8rem 0", color: "#9ca3af" }}>
                       Aucun utilisateur.
                     </td>
                   </tr>
@@ -708,13 +730,54 @@ const Admin: React.FC = () => {
               disabled={loadingUsers || !usersHasNext}
               className="btn-block"
             >
-              {loadingUsers
-                ? "Chargement..."
-                : usersHasNext
-                ? "Charger plus"
-                : "Tout est chargé ✅"}
+              {loadingUsers ? "Chargement..." : usersHasNext ? "Charger plus" : "Tout est chargé ✅"}
             </button>
           </div>
+
+          {/* Modal simple: mot de passe temporaire */}
+          {tempPwdModal && (
+            <div className="card mt-4" style={{ border: "1px solid rgba(255,255,255,.2)" }}>
+              <h3>Mot de passe temporaire ✅</h3>
+              <p style={{ color: "#9ca3af", marginTop: 6 }}>
+                Utilisateur : <b>{tempPwdModal.username}</b>
+              </p>
+
+              <div className="mt-2" style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <code
+                  style={{
+                    padding: "10px 12px",
+                    borderRadius: 10,
+                    background: "rgba(255,255,255,.06)",
+                    border: "1px solid rgba(255,255,255,.12)",
+                    userSelect: "all",
+                  }}
+                >
+                  {tempPwdModal.tempPassword}
+                </code>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(tempPwdModal.tempPassword);
+                    } catch {
+                      // ignore
+                    }
+                  }}
+                >
+                  Copier
+                </button>
+
+                <button type="button" onClick={() => setTempPwdModal(null)}>
+                  Fermer
+                </button>
+              </div>
+
+              <p className="mt-2" style={{ color: "#9ca3af", fontSize: "0.9rem" }}>
+                Transmets ce mot de passe à l’utilisateur. Il pourra le changer après connexion.
+              </p>
+            </div>
+          )}
         </section>
       )}
 
@@ -729,7 +792,7 @@ const Admin: React.FC = () => {
           {error && <p className="mt-2 form-error">{error}</p>}
 
           <div className="mt-4" style={{ display: "grid", gap: "1.5rem" }}>
-            {/* ---------------- CHAPITRES ---------------- */}
+            {/* CHAPITRES */}
             <section>
               <h2>Créer un chapitre</h2>
               <form className="mt-2" onSubmit={handleCreateChapter}>
@@ -745,12 +808,7 @@ const Admin: React.FC = () => {
 
                 <div className="mt-2">
                   <label>Ordre</label>
-                  <input
-                    type="number"
-                    value={order}
-                    onChange={(e) => setOrder(Number(e.target.value))}
-                    required
-                  />
+                  <input type="number" value={order} onChange={(e) => setOrder(Number(e.target.value))} required />
                 </div>
 
                 <div className="mt-2">
@@ -779,24 +837,19 @@ const Admin: React.FC = () => {
               </form>
             </section>
 
-            {/* ---------------- QUESTIONS ---------------- */}
+            {/* QUESTIONS */}
             <section>
               <h2>Questions du chapitre</h2>
 
               {loadingChapters ? (
                 <p>Chargement des chapitres...</p>
               ) : chapters.length === 0 ? (
-                <p style={{ color: "#9ca3af" }}>
-                  Aucun chapitre disponible. Crée d'abord un chapitre.
-                </p>
+                <p style={{ color: "#9ca3af" }}>Aucun chapitre disponible. Crée d'abord un chapitre.</p>
               ) : (
                 <>
                   <div className="mt-2">
                     <label>Chapitre</label>
-                    <select
-                      value={selectedChapterId}
-                      onChange={(e) => setSelectedChapterId(e.target.value)}
-                    >
+                    <select value={selectedChapterId} onChange={(e) => setSelectedChapterId(e.target.value)}>
                       {chapters.map((ch) => (
                         <option key={ch.id} value={ch.id}>
                           {ch.order}. {ch.title}
@@ -808,37 +861,25 @@ const Admin: React.FC = () => {
                   <form className="mt-2" onSubmit={handleQuestionSubmit}>
                     <div className="mt-2">
                       <label>Texte de la question</label>
-                      <input
-                        value={questionText}
-                        onChange={(e) => setQuestionText(e.target.value)}
-                        required
-                      />
+                      <input value={questionText} onChange={(e) => setQuestionText(e.target.value)} required />
                     </div>
 
                     <div className="mt-2">
                       <label>Réponses</label>
                       <div className="mt-2" style={{ display: "grid", gap: "0.5rem" }}>
                         {answers.map((a, index) => (
-                          <div
-                            key={index}
-                            className="flex gap-2"
-                            style={{ alignItems: "center" }}
-                          >
+                          <div key={index} className="flex gap-2" style={{ alignItems: "center" }}>
                             <input
                               style={{ flex: 1 }}
                               placeholder={`Réponse ${index + 1}`}
                               value={a.text}
                               onChange={(e) => handleAnswerChange(index, "text", e.target.value)}
                             />
-                            <label
-                              style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}
-                            >
+                            <label style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
                               <input
                                 type="checkbox"
                                 checked={a.isCorrect}
-                                onChange={(e) =>
-                                  handleAnswerChange(index, "isCorrect", e.target.checked)
-                                }
+                                onChange={(e) => handleAnswerChange(index, "isCorrect", e.target.checked)}
                               />
                               <span style={{ fontSize: "0.8rem" }}>Correcte</span>
                             </label>
@@ -870,9 +911,7 @@ const Admin: React.FC = () => {
                     {loadingQuestions ? (
                       <p>Chargement des questions...</p>
                     ) : questions.length === 0 ? (
-                      <p style={{ color: "#9ca3af", fontSize: "0.9rem" }}>
-                        Aucune question pour ce chapitre.
-                      </p>
+                      <p style={{ color: "#9ca3af", fontSize: "0.9rem" }}>Aucune question pour ce chapitre.</p>
                     ) : (
                       <div className="mt-2" style={{ display: "grid", gap: "0.75rem" }}>
                         {questions.map((q) => (
@@ -902,10 +941,7 @@ const Admin: React.FC = () => {
                             <ul className="mt-2" style={{ paddingLeft: "1rem", fontSize: "0.85rem" }}>
                               {q.answers.map((a, idx) => (
                                 <li key={idx}>
-                                  {a.text}{" "}
-                                  {a.isCorrect && (
-                                    <span style={{ color: "#22c55e" }}>(correcte)</span>
-                                  )}
+                                  {a.text} {a.isCorrect && <span style={{ color: "#22c55e" }}>(correcte)</span>}
                                 </li>
                               ))}
                             </ul>
@@ -918,13 +954,12 @@ const Admin: React.FC = () => {
               )}
             </section>
 
-            {/* ---------------- BADGES ---------------- */}
+            {/* BADGES */}
             <section>
               <h2>Badges</h2>
 
               <p className="mt-2" style={{ fontSize: "0.85rem", color: "#9ca3af" }}>
-                Crée des badges comme <strong>"Premier pas"</strong>,{" "}
-                <strong>"500 points"</strong>, etc.
+                Crée des badges comme <strong>"Premier pas"</strong>, <strong>"500 points"</strong>, etc.
               </p>
 
               <form className="mt-2" onSubmit={handleBadgeSubmit}>
@@ -988,9 +1023,7 @@ const Admin: React.FC = () => {
                 <h3>Liste des badges</h3>
 
                 {badges.length === 0 ? (
-                  <p style={{ color: "#9ca3af", fontSize: "0.9rem" }}>
-                    Aucun badge pour le moment.
-                  </p>
+                  <p style={{ color: "#9ca3af", fontSize: "0.9rem" }}>Aucun badge pour le moment.</p>
                 ) : (
                   <div className="mt-2" style={{ display: "grid", gap: "0.75rem" }}>
                     {badges.map((b) => (
